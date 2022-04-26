@@ -1,0 +1,78 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor LaboratoryCoordinator as LC
+participant ":PerformanceUI" as PUI
+participant ":PerformanceController" as PC
+participant ":Company" as COMP
+participant "cStore: ClientStore" as CS
+participant "tStore: TestStore" as TS
+
+
+activate LC
+LC -> PUI : asks to see the performance of the company
+activate PUI
+PUI --> LC : requests data (i.e.: beginningDate, endDate)
+deactivate PUI
+
+LC -> PUI : types requested data (i.e.: beginningDate, endDate)
+activate PUI
+PUI -> PC : nClients = getAllClients()
+activate PC
+PC -> COMP : cStore = getClientStore()
+activate COMP
+deactivate COMP
+PC -> CS : nClients = getClientListNumber()
+activate CS
+deactivate CS
+deactivate PC
+PUI -> PC : nTestsWaitResult = getAllTestsWaitResult(beginningDate, endDate)
+activate PC
+PC -> COMP : tStore = getTestStore()
+activate COMP
+deactivate COMP
+PC -> TS : nTestsWaitResult = getCollectedTestsNumber(beginningDate, endDate)
+activate TS
+deactivate TS
+deactivate PC
+PUI -> PC : nTestsWaitDiagnosis = getAllTestsWaitDiagnosis(beginningDate, endDate)
+activate PC
+PC -> TS : nTestsWaitDiagnosis = getAnalysedTestsNumber(beginningDate, endDate)
+activate TS
+deactivate TS
+deactivate PC
+PUI -> PC : nTestsValidated = getAllTestsValidated(beginningDate, endDate)
+activate PC
+PC -> TS : nTestsValidated = getValidatedTestsNumber(beginningDate, endDate)
+activate TS
+deactivate TS
+deactivate PC
+PUI --> LC : shows all the information (i.e.: number of clients, number of tests waiting for results, number of tests waiting for diagnosis \nand total number of tests processed) and requests data (i.e.: algorithm to be used)
+deactivate PUI
+
+LC -> PUI : selects one algorithm
+
+activate PUI
+alt if the user chooses benchmark algorithm
+PUI->PC:getSubsequenceBenchmark(seq)
+activate PC
+PC->Sum:Max(seq)
+activate Sum
+deactivate Sum
+deactivate PC
+else the user chooses bruteforce algorithm
+PUI->PC:getSubsequenceBruteForce(seq)
+activate PC
+PC->BruteForceAlgorithm:Max(seq)
+activate BruteForceAlgorithm
+deactivate BruteForceAlgorithm
+deactivate PC
+end
+
+PUI --> LC : shows the information and informs operation success
+deactivate PUI
+deactivate LC
+
+@enduml

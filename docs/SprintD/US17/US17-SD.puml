@@ -1,0 +1,45 @@
+@startuml
+autonumber
+
+actor "LaboratoryCoordinator" as labC
+activate labC
+
+participant ":ImportTestUI" as ImportTestUI
+participant ":ImportTestController" as ImportTestController
+participant ":ImportTest" as ImportTest
+
+
+
+labC -> ImportTestUI : import a test from a .csv file
+activate ImportTestUI
+
+ImportTestUI --> labC : requests file path
+deactivate ImportTestUI
+
+labC -> ImportTestUI : inserts file path
+activate ImportTestUI
+
+
+ImportTestUI -> ImportTestController : lists = importFromFile(pathName)
+activate ImportTestController
+
+
+ImportTestController -> ImportTest  : getFile(pathName)
+activate ImportTest
+
+ImportTest -> ImportTest ++ : importRules = getRules()
+deactivate ImportTest
+deactivate ImportTest
+
+ImportTestController -> ImportTest : lists = readListFromCSV()
+activate ImportTest
+
+
+ref over ImportTest : SD_checkIfExists()
+
+
+ImportTestUI --> labC : display a list of imported tests
+deactivate ImportTestController
+deactivate ImportTestUI
+
+@enduml

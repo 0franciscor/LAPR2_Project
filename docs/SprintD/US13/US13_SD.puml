@@ -1,0 +1,85 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+actor "LabCoordinator" as LB
+activate LB
+LB -> ConsultTestDetailsByClientUI : consult the historical tests performed by a particular client
+activate ConsultTestDetailsByClientUI
+ConsultTestDetailsByClientUI --> LB : ask ordering criteria
+deactivate ConsultTestDetailsByClientUI
+LB -> ConsultTestDetailsByClientUI : selects order criteria
+activate ConsultTestDetailsByClientUI
+ConsultTestDetailsByClientUI -> ConsultTestDetailsByClientController : orderClients(criteria)
+
+activate ConsultTestDetailsByClientController
+ConsultTestDetailsByClientController -> Company : clientStore = getClientStore()
+activate Company
+deactivate Company
+ConsultTestDetailsByClientController -> ClientStore : clientList = getClientList()
+activate ClientStore
+deactivate ClientStore
+ConsultTestDetailsByClientController -> ClientMapper  : clientListDto = toDTO(clientList)
+activate ClientMapper
+deactivate ClientMapper
+ConsultTestDetailsByClientController -> SortAlgorithmStore ++ : clientListDtoOrdered = sort(criteria, clientListDto)
+
+SortAlgorithmStore -> SortAlgorithmStore ++ : sortAlgorithm = getAlgoritmo()
+deactivate SortAlgorithmStore
+alt if algorithm=app.domain.model.SortAlgorithm1 in config.properties
+alt if criteria = Name
+SortAlgorithmStore -> SortAlgorithm1 : showListByName(clientListDto)
+end
+alt if criteria = TIN
+SortAlgorithmStore -> SortAlgorithm1 : showListByTIN(clientListDto)
+end
+end
+alt if algorithm=app.domain.model.SortAlgorithm2 in config.properties
+alt if criteria = Name
+SortAlgorithmStore -> SortAlgorithm2 : showListByName(clientListDto)
+end
+alt if criteria = TIN
+SortAlgorithmStore -> SortAlgorithm2 : showListByTIN(clientListDto)
+end
+end
+activate SortAlgorithmStore
+deactivate SortAlgorithmStore
+deactivate ConsultTestDetailsByClientController
+
+ConsultTestDetailsByClientUI --> LB : presents an ordered list of client and ask to select one
+deactivate ConsultTestDetailsByClientUI
+LB -> ConsultTestDetailsByClientUI : selects client
+activate ConsultTestDetailsByClientUI
+ConsultTestDetailsByClientUI -> ConsultTestDetailsByClientController :  presentTestsOfClient(tin)
+activate ConsultTestDetailsByClientController
+ConsultTestDetailsByClientController -> Company ++ : getClientStore()
+deactivate Company
+ConsultTestDetailsByClientController -> ClientStore ++ : client = getClient(tin)
+deactivate ClientStore
+ConsultTestDetailsByClientController -> Client ++ : testListOfClient = getClientTestsList()
+deactivate Client
+ConsultTestDetailsByClientController -> TestMapper : testDtoListOfClient = toDto(testListOfClient)
+activate TestMapper
+deactivate TestMapper
+deactivate ConsultTestDetailsByClientController
+ConsultTestDetailsByClientUI --> LB : presents client's tests and ask to select one
+deactivate ConsultTestDetailsByClientUI
+LB -> ConsultTestDetailsByClientUI : selects test
+activate ConsultTestDetailsByClientUI
+
+ConsultTestDetailsByClientUI -> ConsultTestDetailsByClientController  : presentTestDetails(testcode)
+activate ConsultTestDetailsByClientController
+ConsultTestDetailsByClientController -> TestStore ++: test = getTestByCode()
+deactivate TestStore
+ConsultTestDetailsByClientController -> ConsultTestDetailsByClientController : showData(test)
+activate ConsultTestDetailsByClientController
+
+deactivate ConsultTestDetailsByClientController
+ConsultTestDetailsByClientUI --> LB : shows test details
+participant "client : Client"
+participant "clientStore : ClientStore"
+participant "clientList : List<Client>"
+participant "clientListDto : List<ClientDto>"
+
+
+@enduml

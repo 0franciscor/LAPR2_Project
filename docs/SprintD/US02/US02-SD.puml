@@ -1,0 +1,70 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor "Client" as C
+activate C
+
+
+C -> ":UpdateClientDataUI" : update personal data
+activate ":UpdateClientDataUI"
+":UpdateClientDataUI" -> ":UpdateClientDataController": getDataToUpdate(cl)
+activate ":UpdateClientDataController"
+
+":UpdateClientDataController" -> ":Company": store = getClientStore()
+activate ":Company"
+deactivate ":Company"
+":UpdateClientDataController" -> ":ClientStore": listDataToUpdate = getDataToUpdate(cl)
+activate ":ClientStore"
+
+":ClientStore" -> "Client": sex = getSex()
+activate "Client"
+deactivate "Client"
+":ClientStore" -> "Client": phoneNumber = getPhoneNumber()
+activate "Client"
+deactivate "Client"
+":ClientStore" -> "Client": email = getEmail()
+activate "Client"
+deactivate "Client"
+":ClientStore" -> "Client": name = getName()
+activate "Client"
+deactivate "Client"
+
+deactivate ":ClientStore"
+
+":UpdateClientDataController" -> ":ClientMapper": listDataToUpdateDto = toDto(listDataToUpdate)
+activate ":ClientMapper"
+deactivate ":ClientMapper"
+
+deactivate ":UpdateClientDataController"
+
+
+":UpdateClientDataUI" --> C: shows the data that want to update and ask to select one or more
+deactivate ":UpdateClientDataUI"
+C -> ":UpdateClientDataUI" : selects the data and update it
+activate ":UpdateClientDataUI"
+":UpdateClientDataUI" -> ":UpdateClientDataController": UpdateData(listDataToUpdateDto)
+activate ":UpdateClientDataController"
+
+":UpdateClientDataController" -> ":ClientMapper": listUpdate = toModel (listDataToUpdateDto)
+activate ":ClientMapper"
+deactivate ":ClientMapper"
+deactivate ":UpdateClientDataController"
+
+
+
+
+
+":UpdateClientDataUI" --> C: shows the data and requests a confirmation
+deactivate ":UpdateClientDataUI"
+C -> ":UpdateClientDataUI": confirms the data
+activate ":UpdateClientDataUI"
+":UpdateClientDataUI" -> ":UpdateClientDataController": UpdateDataClient(listUpdate)
+activate ":UpdateClientDataController"
+deactivate ":UpdateClientDataController"
+
+
+
+deactivate ":UpdateClientDataUI"
+@enduml

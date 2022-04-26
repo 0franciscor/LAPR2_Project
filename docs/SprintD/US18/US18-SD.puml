@@ -1,0 +1,125 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor "Administrator" as A
+activate A
+
+
+A -> ":SendReportUI" : send the covid-19 report to the NHS
+activate ":SendReportUI"
+":SendReportUI" --> A: define the date to see the report (dateToSee), the number of historical day/weeks points (histPoints),\n select between a simple linear and multilinear regression model, independent variables (i.e.: meanAge, dailyNumberTests), \ndefine the significance level (sigLevel), the confidence level (confLevel) and define hypothesis test (hypTest)
+deactivate ":SendReportUI"
+
+A -> ":SendReportUI" : types and selects the requested data
+activate ":SendReportUI"
+":SendReportUI" -> ":SendReportController": getAllTestWithResultCovidPositive(dateToSee, histPoints)
+
+activate ":SendReportController"
+":SendReportController" -> ":Company" : store = getTestStore()
+activate ":Company"
+deactivate ":Company"
+
+":SendReportController" -> "Utils" : lstDateExceptSundays = getDaysWithoutSundays(dateToSee, histPoints)
+activate "Utils"
+deactivate "Utils"
+
+
+
+loop for each date of the list
+":SendReportController" -> ":store: TestStore" : lstAllTestWithResultCovidPositive = getAllTestWithResultCovidPositive(date)
+activate ":store: TestStore"
+deactivate ":store: TestStore"
+end
+
+":SendReportController" -> ":store: TestStore" : arrayY = getDailyPositiveTests(lstAllTestWithResultCovidPositive)
+activate ":store: TestStore"
+deactivate ":store: TestStore"
+
+deactivate ":SendReportController"
+
+
+alt if the user chooses simple linear regression
+":SendReportUI" -> ":SendReportController" : SimpleLinearRegression(userIntention, sigLevel, confLevel, hypTest)
+activate ":SendReportController"
+
+ref over ":SendReportController" : SD_SimpleLinearRegression(userIntention, sigLevel, confLevel, hypTest)
+
+":SendReportController" -> ":Company" : report = generateNHSReport(sigLevel,confLevel, hypTest)
+activate ":Company"
+create "report : NHSReport"
+":Company" --> "report : NHSReport" : create(sigLevel,confLevel, hypTest)
+deactivate ":Company"
+
+note over ":SendReportController" : arrayX can be dailyNumberTests or meanAge
+
+":SendReportController" -> "report : NHSReport": data = calculateData(arrayX, arrayY, lstDateExceptSundays)
+activate "report : NHSReport"
+
+
+
+create ":LinearRegression"
+
+"report : NHSReport" --> ":LinearRegression" : create(arrayX, arrayY)
+deactivate "report : NHSReport"
+deactivate ":SendReportController"
+
+
+
+else the user chooses multilinear regression
+":SendReportUI" -> ":SendReportController" : MultilinearRegression(sigLevel,confLevel)
+activate ":SendReportController"
+
+
+ref over ":SendReportController" : SD_MultilinearRegression(sigLevel, confLevel)
+
+":SendReportController" -> ":Company" : report = generateNHSReport(sigLevel,confLevel)
+activate ":Company"
+create "reportMultilinear : NHSReport"
+":Company" --> "reportMultilinear : NHSReport" : create(sigLevel,confLevel)
+deactivate ":Company"
+
+
+":SendReportController" -> "report : NHSReport": data = calculateData(BiarrayX, arrayY, lstDateExceptSundays)
+activate "report : NHSReport"
+
+
+
+create ":MultilinearRegression"
+
+"report : NHSReport" --> ":MultilinearRegression" : create(BiarrayX, arrayY)
+deactivate "report : NHSReport"
+
+
+
+
+
+
+deactivate ":SendReportController"
+end
+
+
+
+":SendReportUI" -> ":SendReportController" : sendNHSReport()
+activate ":SendReportController"
+
+
+deactivate ":Company"
+
+
+
+":SendReportController" -> "Report2NHS": writeUsingFileWriter(data)
+
+activate "Report2NHS"
+
+deactivate "Report2NHS"
+
+deactivate ":SendReportController"
+
+":SendReportUI" --> A: informs operation success
+deactivate ":SendReportUI"
+
+
+
+@enduml
